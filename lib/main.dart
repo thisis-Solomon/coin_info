@@ -1,8 +1,20 @@
+import 'dart:convert';
+
 import 'package:coin_info/pages/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await loadConfig();
   runApp(const MyApp());
+}
+
+Future<void> loadConfig() async{
+  String _contentConfig = await rootBundle.loadString("assets/config/main.json");
+  Map _configData = jsonDecode(_contentConfig);
+
+  print(_configData);
 }
 
 class MyApp extends StatelessWidget {
