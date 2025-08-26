@@ -1,5 +1,6 @@
 import "dart:convert";
 
+import "package:coin_info/pages/detailed_page.dart";
 import "package:coin_info/services/http_services.dart";
 import "package:flutter/material.dart";
 import "package:get_it/get_it.dart";
@@ -76,12 +77,21 @@ class _HomePageState extends State<HomePage>{
         Map _data = jsonDecode(snapshot.data.toString());
         num _price = _data["market_data"]["current_price"]["usd"];
         num _percentageChange = _data["market_data"]["price_change_percentage_24h"];
+        Map _exchangeRates = _data["market_data"]["current_price"];
+
+        print(_exchangeRates);
         return Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _coinImage(_data['image']["large"]),
+                GestureDetector(
+                    onDoubleTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) {
+                        return DetailedPage(rates: _exchangeRates);
+                      },));
+                    },
+                    child: _coinImage(_data['image']["large"])),
             _currentPrice(_price),
             _percentageChange24Hrs(_percentageChange),
             _coinDescription(_data["description"]["en"]),
@@ -108,17 +118,17 @@ class _HomePageState extends State<HomePage>{
   }
   Widget _coinImage(String _imageURL){
     return Container(
-      width: _deviceWidth! * 0.18,
-      height: _deviceHeight! * 0.1,
-      margin: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
-        image: DecorationImage(
-          image: NetworkImage(_imageURL),
-          fit: BoxFit.cover,
+        width: _deviceWidth! * 0.18,
+        height: _deviceHeight! * 0.1,
+        margin: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100),
+          image: DecorationImage(
+            image: NetworkImage(_imageURL),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _coinDescription(String _description){
