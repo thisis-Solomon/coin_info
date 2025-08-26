@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget{
 class _HomePageState extends State<HomePage>{
   double? _deviceWidth, _deviceHeight;
   HTTPServices? _http;
+  String? _selectedCoin = "Bitcoin";
 
   @override
   void initState() {
@@ -54,8 +55,12 @@ class _HomePageState extends State<HomePage>{
 
     return DropdownButton(
         items: _item,
-        value: _coins.first,
-        onChanged: (_value){},
+        value: _selectedCoin,
+        onChanged: (_value){
+            setState(() {
+              _selectedCoin = _value!;
+            });
+        },
         iconSize: 30,
         icon: Icon(Icons.arrow_drop_down_sharp),
         iconEnabledColor: Colors.black,
@@ -66,14 +71,68 @@ class _HomePageState extends State<HomePage>{
   }
 
   Widget _dataWidgets(){
-    return FutureBuilder(future: _http!.get('/coins/bitcoin/'), builder: (BuildContext context, AsyncSnapshot snapshot){
+    return FutureBuilder(future: _http!.get('/coins/${_selectedCoin?.toLowerCase()}/'), builder: (BuildContext context, AsyncSnapshot snapshot){
       if(snapshot.hasData){
         Map _data = jsonDecode(snapshot.data.toString());
         num _price = _data["market_data"]["current_price"]["usd"];
-        return Text(_price.toString());
+        num _percentageChange = _data["market_data"]["price_change_percentage_24h"];
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _coinImage(_data['image']["large"]),
+            _currentPrice(_price),
+            _percentageChange24Hrs(_percentageChange),
+            _coinDescription(_data["description"]["en"]),
+          ],
+        );
       }else{
         return CircularProgressIndicator();
       }
     });
+  }
+
+  Widget _currentPrice(num _rate){
+    return Text("${_rate.toStringAsFixed(2)} USD", style: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+    ));
+  }
+
+  Widget _percentageChange24Hrs(num _percentage){
+    return Text("${_percentage.toString()}%", style: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),);
+  }
+  Widget _coinImage(String _imageURL){
+    return Container(
+      width: _deviceWidth! * 0.18,
+      height: _deviceHeight! * 0.1,
+      margin: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+        image: DecorationImage(
+          image: NetworkImage(_imageURL),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _coinDescription(String _description){
+    return Container(
+      width: _deviceWidth! * 0.8,
+      height: _deviceHeight! * 0.6,
+      margin: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01),
+      padding: EdgeInsets.symmetric(vertical: _deviceHeight! * 0.01, horizontal: _deviceWidth! * 0.01),
+      child: Text(_description, style: TextStyle(
+        fontSize: 14,
+        letterSpacing: 1.2,
+        color: Colors.grey.shade900,
+        fontWeight: FontWeight.w300
+      )),
+    );
   }
 }
